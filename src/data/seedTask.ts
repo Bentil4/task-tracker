@@ -1,6 +1,6 @@
 import { ITask } from "../types/task";
 
-export const seedTasks: ITask[] = [
+export const tasks: ITask[] = [
   { id: 1, title: "Set up Express project", completed: true },
   { id: 2, title: "Define RESTful routes", completed: false },
   { id: 3, title: "Apply MVC structure", completed: false },
