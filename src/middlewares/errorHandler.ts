@@ -1,7 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { HttpError } from "../controllers/taskController";
 
-export const errorHandler = (error: Error, _req: Request, res: Response, _next: NextFunction): void => {
+export const errorHandler = (
+  error: Error,
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+): void => {
   const statusCode = error instanceof HttpError ? error.statusCode : 500;
   const isDevelopment = process.env.NODE_ENV === "development";
 
