@@ -92,7 +92,9 @@ export const taskController = {
   updateTask: wrapAsync(async (req, res) => {
     const { id } = req.params;
     const input = validate(updateSchema, req.body);
-    const task = await TaskModel.findByIdAndUpdate(id, input, { new: true });
+    const task = await TaskModel.findByIdAndUpdate(id, input, {
+      returnDocument: "after",
+    });
     if (!task) throw new HttpError(404, `Task with ID ${id} not found.`);
     sendSuccess(res, 200, task, "Task updated successfully.");
   }),

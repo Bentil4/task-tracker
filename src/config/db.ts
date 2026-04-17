@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
 
+const DB_PASSWORD = process.env.DB_PASSWORD;
+
+if (!DB_PASSWORD) {
+  throw new Error("DB_PASSWORD environment variable is not defined");
+}
+
 const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/task_tracker_db";
+  process.env.MONGODB_URI ||
+  `mongodb+srv://admin:${encodeURIComponent(DB_PASSWORD)}@task-tracker-cluster.ym4inbi.mongodb.net/`;
 
 export const connectDB = async (): Promise<void> => {
   try {
