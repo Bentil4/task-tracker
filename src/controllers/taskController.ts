@@ -49,13 +49,6 @@ const validate = <T>(schema: Joi.ObjectSchema<T>, payload: unknown): T => {
   return value;
 };
 
-const parseId = (raw: string | string[]): number => {
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  if (!/^[1-9]\d*$/.test(value))
-    throw new HttpError(400, "Invalid task ID. It must be a positive integer.");
-  return Number(value);
-};
-
 const sendSuccess = <T>(
   res: Response,
   statusCode: number,
@@ -65,49 +58,48 @@ const sendSuccess = <T>(
   res.status(statusCode).json({ success: true, message, data });
 };
 
-const wrap =
-  (fn: (req: Request, res: Response) => void): RequestHandler =>
-  (req, res, next: NextFunction) => {
+const wrapAsync = (
+  fn: (req: Request, res: Response) => Promise<void>,
+): RequestHandler => {
+  return async (req, res, next: NextFunction) => {
     try {
-      fn(req, res);
+      await fn(req, res);
     } catch (err) {
       next(err);
     }
   };
+};
 
 export const taskController = {
-  getAllTasks: wrap((_req, res) => {
-    sendSuccess(res, 200, TaskModel.getAll(), "Tasks retrieved successfully.");
+  getAllTasks: wrapAsync(async (_req, res) => {
+    const tasks = await TaskModel.find().sort({ createdAt: -1 });
+    sendSuccess(res, 200, tasks, "Tasks retrieved successfully.");
   }),
 
-  getTaskById: wrap((req, res) => {
-    const id = parseId(req.params.id);
-    const task = TaskModel.getById(id);
+  getTaskById: wrapAsync(async (req, res) => {
+    const { id } = req.params;
+    const task = await TaskModel.findById(id);
     if (!task) throw new HttpError(404, `Task with ID ${id} not found.`);
     sendSuccess(res, 200, task, "Task retrieved successfully.");
   }),
 
-  createTask: wrap((req, res) => {
+  createTask: wrapAsync(async (req, res) => {
     const input = validate(createSchema, req.body);
-    sendSuccess(
-      res,
-      201,
-      TaskModel.create(input),
-      "Task created successfully.",
-    );
+    const task = await TaskModel.create(input);
+    sendSuccess(res, 201, task, "Task created successfully.");
   }),
 
-  updateTask: wrap((req, res) => {
-    const id = parseId(req.params.id);
+  updateTask: wrapAsync(async (req, res) => {
+    const { id } = req.params;
     const input = validate(updateSchema, req.body);
-    const task = TaskModel.update(id, input);
+    const task = await TaskModel.findByIdAndUpdate(id, input, { new: true });
     if (!task) throw new HttpError(404, `Task with ID ${id} not found.`);
     sendSuccess(res, 200, task, "Task updated successfully.");
   }),
 
-  deleteTask: wrap((req, res) => {
-    const id = parseId(req.params.id);
-    const task = TaskModel.remove(id);
+  deleteTask: wrapAsync(async (req, res) => {
+    const { id } = req.params;
+    const task = await TaskModel.findByIdAndDelete(id);
     if (!task) throw new HttpError(404, `Task with ID ${id} not found.`);
     sendSuccess(res, 200, task, "Task deleted successfully.");
   }),
