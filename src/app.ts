@@ -3,6 +3,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { logger } from "./middlewares/logger";
 import { notFound } from "./middlewares/notFound";
 import taskRouter from "./routes/taskRoutes";
+import userRouter from "./routes/userRoute";
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/tasks", taskRouter);
+app.use("/api/users", userRouter);
 
 app.use(notFound);
 app.use(errorHandler);
