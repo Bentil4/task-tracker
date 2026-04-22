@@ -46,4 +46,9 @@ export const userController = {
     const user = await UserModel.create(input);
     sendSuccess(res, 201, user.email, "User created successfully");
   }),
+
+  getAllUsers: wrapAsync(async (_req, res) => {
+    const users = await UserModel.find();
+    sendSuccess(res, 200, users, "Users retrieved successfully");
+  }),
 };
