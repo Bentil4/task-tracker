@@ -51,4 +51,30 @@ export const userController = {
     const users = await UserModel.find();
     sendSuccess(res, 200, users, "Users retrieved successfully");
   }),
+
+  getUserById: wrapAsync(async (req, res) => {
+    const { id } = req.params;
+    const user = await UserModel.findById(id);
+    if (!user) throw new HttpError(404, `User with ID ${id} not found.`);
+    sendSuccess(res, 200, user, "User retrieved successfully");
+  }),
+
+  updateUserEmail: wrapAsync(async (req, res) => {
+    const { id } = req.params;
+    const { email } = req.body;
+    const user = await UserModel.findByIdAndUpdate(
+      id,
+      { email },
+      { returnDocument: "after" },
+    );
+    if (!user) throw new HttpError(404, `User with ID ${id} not found.`);
+    sendSuccess(res, 200, user, "User updated successfully");
+  }),
+
+  deleteUser: wrapAsync(async (req, res) => {
+    const { id } = req.params;
+    const user = await UserModel.findByIdAndDelete(id);
+    if (!user) throw new HttpError(404, `User with ID ${id} not found.`);
+    sendSuccess(res, 200, user, "User deleted successfully");
+  }),
 };
