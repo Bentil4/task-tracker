@@ -2,6 +2,7 @@ import Joi from "joi";
 import { UserModel } from "../models/User";
 import { HttpError, sendSuccess, validate, wrapAsync } from "../utils/helper";
 
+
 const fullNameSchema = Joi.string().trim().min(5).max(100).required().messages({
   "string.min": "'fullName' must be at least 5 characters.",
   "string.max": "'fullName' must be at most 100 characters.",
@@ -45,6 +46,22 @@ export const userController = {
     const input = validate(userSchema, req.body);
     const user = await UserModel.create(input);
     sendSuccess(res, 201, user.email, "User created successfully");
+  }),
+
+  loginUser: wrapAsync(async (req, res) => {
+    const { email, password } = req.body;
+    const user = await UserModel.findOne({ email }).select("+password");
+    if (!user) throw new HttpError(404, "User not found");
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) throw new HttpError(401, "Invalid password");
+    sendSuccess(
+      res,
+      200,
+      { user: { id: user._id, email: user.email } },
+      "User logged in successfully",
+    );
+
+    
   }),
 
   getAllUsers: wrapAsync(async (_req, res) => {

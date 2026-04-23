@@ -2,9 +2,11 @@ import mongoose, { Document, Schema } from "mongoose";
 import { IUser } from "../types/user";
 import bcrypt from "bcrypt";
 
-export interface IUserDocment extends IUser, Document {}
+export interface IUserDocument extends IUser, Document {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
 
-const userSchema = new Schema<IUserDocment>({
+const userSchema = new Schema<IUserDocument>({
   fullName: {
     type: String,
     required: [true, "Full name is required"],
@@ -52,12 +54,10 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-export const UserModel = mongoose.model<IUserDocment>("User", userSchema);
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string,
+): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
-// try {
-//   const salt = bcrypt.genSaltSync(10);
-//   this.password = bcrypt.hashSync(this.password, salt);
-//   next();
-// } catch (error) {
-//   next(error as Error);
-// }
+export const UserModel = mongoose.model<IUserDocument>("User", userSchema);
