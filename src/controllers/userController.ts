@@ -1,8 +1,7 @@
 import Joi from "joi";
 import { UserModel } from "../models/User";
 import { HttpError, sendSuccess, validate, wrapAsync } from "../utils/helper";
-
-
+import { UserRole } from "../types/user";
 const fullNameSchema = Joi.string().trim().min(5).max(100).required().messages({
   "string.min": "'fullName' must be at least 5 characters.",
   "string.max": "'fullName' must be at most 100 characters.",
@@ -31,37 +30,43 @@ const passwordSchema = Joi.string()
     "string.required": "'password' is required.",
   });
 
+const roleSchema = Joi.string()
+  .valid(...Object.values(UserRole))
+  .default("user");
+
 const userSchema = Joi.object({
   fullName: fullNameSchema,
   email: emailSchema,
   password: passwordSchema,
+  role: roleSchema,
 });
 
 export const userController = {
   registerUser: wrapAsync(async (req, res) => {
-    const existingUser = await UserModel.findOne({ email: req.body.email });
+    const existingUser = await UserModel.findOne({
+      email: req.body.email.toLowerCase(),
+    });
     if (existingUser) {
-      throw new HttpError(409, "User with this email already exists");
+      throw new HttpError(409, "User already exists");
     }
     const input = validate(userSchema, req.body);
     const user = await UserModel.create(input);
+    res.header("Authorization", `Bearer ${user.generateAuthToken()}`);
     sendSuccess(res, 201, user.email, "User created successfully");
   }),
 
   loginUser: wrapAsync(async (req, res) => {
     const { email, password } = req.body;
-    const user = await UserModel.findOne({ email }).select("+password");
+    const user = await UserModel.findOne({ email: email.toLowerCase() }).select(
+      "+password",
+    );
     if (!user) throw new HttpError(404, "User not found");
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) throw new HttpError(401, "Invalid password");
-    sendSuccess(
-      res,
-      200,
-      { user: { id: user._id, email: user.email } },
-      "User logged in successfully",
-    );
+    const token = user.generateAuthToken();
 
-    
+    res.header("Authorization", `Bearer ${token}`);
+    sendSuccess(res, 200, true, "User logged in successfully");
   }),
 
   getAllUsers: wrapAsync(async (_req, res) => {
