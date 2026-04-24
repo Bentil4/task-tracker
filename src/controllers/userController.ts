@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { UserModel } from "../models/User";
+import { UserModel } from "../models/User.model";
 import { HttpError, sendSuccess, validate, wrapAsync } from "../utils/helper";
 import { UserRole } from "../types/user";
 const fullNameSchema = Joi.string().trim().min(5).max(100).required().messages({

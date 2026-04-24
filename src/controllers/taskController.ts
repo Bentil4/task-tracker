@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { TaskModel } from "../models/Task";
+import { TaskModel } from "../models/Task.model";
 import { HttpError, validate, sendSuccess, wrapAsync } from "../utils/helper";
 
 const titleSchema = Joi.string().trim().min(1).messages({
