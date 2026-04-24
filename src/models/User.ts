@@ -1,9 +1,11 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { IUser } from "../types/user";
+import { IUser, UserRole } from "../types/user";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export interface IUserDocument extends IUser, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
+  generateAuthToken(): string;
 }
 
 const userSchema = new Schema<IUserDocument>({
@@ -22,6 +24,12 @@ const userSchema = new Schema<IUserDocument>({
     maxlength: [50, "Email must be at most 50 characters"],
     unique: true,
     lowercase: true,
+  },
+  role: {
+    type: String,
+    required: [true, "Role is required"],
+    enum: Object.values(UserRole),
+    default: UserRole.USER,
   },
   password: {
     type: String,
@@ -46,7 +54,7 @@ const userSchema = new Schema<IUserDocument>({
   },
 });
 
-userSchema.pre("save", async function () {
+userSchema.pre("save", async function (this: IUserDocument) {
   if (!this.isModified("password")) return;
 
   const saltRounds = 10;
@@ -55,9 +63,21 @@ userSchema.pre("save", async function () {
 });
 
 userSchema.methods.comparePassword = async function (
+  this: IUserDocument,
   candidatePassword: string,
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.generateAuthToken = function (this: IUserDocument) {
+  const token = jwt.sign(
+    { _id: this._id, email: this.email, role: this.role },
+    process.env.JWT_SECRET as string,
+    {
+      expiresIn: "1d",
+    },
+  );
+  return token;
 };
 
 export const UserModel = mongoose.model<IUserDocument>("User", userSchema);
