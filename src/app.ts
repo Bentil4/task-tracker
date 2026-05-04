@@ -4,6 +4,8 @@ import { logger } from "./middlewares/logger";
 import { notFound } from "./middlewares/notFound";
 import taskRouter from "./routes/taskRoutes";
 import userRouter from "./routes/userRoute";
+import authRouter from "./routes/authRoutes";
+import { authenticateToken } from "./middlewares/authentication";
 
 const app = express();
 
@@ -17,8 +19,8 @@ app.get("/", (_req, res) => {
 
 app.use("/api/tasks", taskRouter);
 app.use("/api/users", userRouter);
+app.use("/auth", authRouter);
 
 app.use(notFound);
 app.use(errorHandler);
-
 export default app;
