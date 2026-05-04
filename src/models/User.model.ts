@@ -58,7 +58,7 @@ userSchema.pre("save", async function (this: IUserDocument) {
   if (!this.isModified("password")) return;
 
   const saltRounds = 10;
-  const salt = bcrypt.genSaltSync(saltRounds);
+  const salt = await bcrypt.genSalt(saltRounds);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
@@ -74,7 +74,7 @@ userSchema.methods.generateAuthToken = function (this: IUserDocument) {
     { _id: this._id, email: this.email, role: this.role },
     process.env.JWT_SECRET as string,
     {
-      expiresIn: "1d",
+      expiresIn: "1h",
     },
   );
   return token;
