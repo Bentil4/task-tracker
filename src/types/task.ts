@@ -1,7 +1,10 @@
+import { Types } from "mongoose";
+
 export interface ITask {
   id: string;
   title: string;
   completed: boolean;
+  userId: Types.ObjectId;
   createdAt: Date;
 }
 
