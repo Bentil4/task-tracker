@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import { HttpError } from "./../utils/helper";
-import { IUser } from "../types/user";
+import { IUser, UserRole } from "../types/user";
 
 declare global {
   namespace Express {
@@ -10,25 +9,6 @@ declare global {
     }
   }
 }
-
-// export const authenticate = (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   const authHeader = req.headers.authorization;
-//   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-//     throw new HttpError(401, "Unauthorized");
-//   }
-//   const token = authHeader.split(" ")[1];
-//   try {
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-//     req.user = decoded;
-//     next();
-//   } catch (error) {
-//     throw new HttpError(401, "Invalid token");
-//   }
-// };
 
 export function authenticateToken(
   req: Request,
@@ -50,4 +30,19 @@ export function authenticateToken(
     req.user = decoded as IUser;
     next();
   });
+}
+
+export function requireRole(roles: UserRole | UserRole[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const allowedRoles = Array.isArray(roles) ? roles : [roles];
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Insufficient permissions" });
+    }
+
+    next();
+  };
 }
