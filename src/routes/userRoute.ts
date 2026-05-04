@@ -1,12 +1,15 @@
 import { Router } from "express";
 import { userController } from "../controllers/userController";
+import { authenticateToken, requireRole } from "../middlewares/authentication";
+import { UserRole } from "../types/user";
 
 const router = Router();
 
-router.post("/register", userController.registerUser);
-router.get("/", userController.getAllUsers);
+router.use(authenticateToken);
+
+router.get("/", requireRole([UserRole.ADMIN]), userController.getAllUsers);
 router.get("/:id", userController.getUserById);
 router.put("/:id", userController.updateUserEmail);
-router.delete("/:id", userController.deleteUser);
-router.post("/login", userController.loginUser);
+router.delete("/:id", requireRole([UserRole.ADMIN]), userController.deleteUser);
+
 export default router;
