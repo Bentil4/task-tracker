@@ -2,6 +2,13 @@ import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { IUser, UserRole } from "../types/user";
 
+interface AuthPayload {
+  id?: string;
+  _id?: string;
+  email: string;
+  role: UserRole;
+}
+
 declare global {
   namespace Express {
     interface Request {
@@ -27,7 +34,17 @@ export function authenticateToken(
       return res.status(403).json({ message: "Invalid or expired token" });
     }
 
-    req.user = decoded as IUser;
+    const payload = decoded as AuthPayload;
+    const userId = payload.id ?? payload._id;
+
+    if (!userId) {
+      return res.status(403).json({ message: "Invalid token payload" });
+    }
+
+    req.user = {
+      ...payload,
+      id: userId,
+    } as IUser;
     next();
   });
 }
