@@ -7,8 +7,7 @@ if (!DB_PASSWORD) {
 }
 
 const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  `mongodb://admin:${encodeURIComponent(DB_PASSWORD)}@ac-gjn45zy-shard-00-00.ym4inbi.mongodb.net:27017,ac-gjn45zy-shard-00-01.ym4inbi.mongodb.net:27017,ac-gjn45zy-shard-00-02.ym4inbi.mongodb.net:27017/?ssl=true&replicaSet=atlas-c0z5yu-shard-0&authSource=admin&appName=Task-Tracker-Cluster`;
+  process.env.MONGODB_URI || `mongodb://localhost:27017/task-tracker`;
 
 export const connectDB = async (): Promise<void> => {
   try {
@@ -19,4 +18,3 @@ export const connectDB = async (): Promise<void> => {
     process.exit(1);
   }
 };
-

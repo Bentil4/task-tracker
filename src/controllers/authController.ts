@@ -12,9 +12,6 @@ export const authController = {
     if (existingUser) {
       throw new HttpError(409, "User already exists");
     }
-    const input = validate(userSchema, sanitizedInput);
-    const user = await UserModel.create(input);
-    res.header("Authorization", `Bearer ${user.generateAuthToken()}`);
     sendSuccess(res, 201, true, "User created successfully");
   }),
 
