@@ -1,33 +1,28 @@
-import { ITask, ICreateTaskInput, IUpdateTaskInput } from "../types/task";
-import { tasks } from "../data/seedTask";
+import mongoose, { Document, Schema } from "mongoose";
+import { ITask } from "../types/task";
 
-let nextId = tasks.length + 1;
+export interface ITaskDocument extends ITask, Document {}
 
-export const TaskModel = {
-  getAll: (): ITask[] => [...tasks],
-
-  getById: (id: number): ITask | undefined => tasks.find((t) => t.id === id),
-
-  create: (input: ICreateTaskInput): ITask => {
-    const task: ITask = {
-      id: nextId++,
-      title: input.title,
-      completed: input.completed ?? false,
-    };
-    tasks.push(task);
-    return task;
+const taskSchema = new Schema<ITaskDocument>(
+  {
+    title: {
+      type: String,
+      required: [true, "Title is required"],
+      trim: true,
+      minlength: [1, "Title must be a non-empty string"],
+    },
+    completed: {
+      type: Boolean,
+      default: false,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-
-  update: (id: number, updates: IUpdateTaskInput): ITask | undefined => {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return undefined;
-    Object.assign(task, updates);
-    return task;
+  {
+    timestamps: true,
   },
+);
 
-  remove: (id: number): ITask | undefined => {
-    const index = tasks.findIndex((t) => t.id === id);
-    if (index < 0) return undefined;
-    return tasks.splice(index, 1)[0];
-  },
-};
+export const TaskModel = mongoose.model<ITaskDocument>("Task", taskSchema);

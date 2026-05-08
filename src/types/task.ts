@@ -1,7 +1,8 @@
 export interface ITask {
-  id: number;
+  id: string;
   title: string;
   completed: boolean;
+  createdAt: Date;
 }
 
 export interface ICreateTaskInput {
