@@ -7,8 +7,7 @@ if (!DB_PASSWORD) {
 }
 
 const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  `mongodb+srv://admin:${encodeURIComponent(DB_PASSWORD)}@task-tracker-cluster.ym4inbi.mongodb.net/`;
+  process.env.MONGODB_URI || `mongodb://localhost:27017/task-tracker`;
 
 export const connectDB = async (): Promise<void> => {
   try {

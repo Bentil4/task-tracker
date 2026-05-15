@@ -1,16 +1,8 @@
 import Joi from "joi";
-import { NextFunction, Request, RequestHandler, Response } from "express";
-import { TaskModel } from "../models/Task";
-
-export class HttpError extends Error {
-  constructor(
-    public readonly statusCode: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = "HttpError";
-  }
-}
+import { TaskModel } from "../models/Task.model";
+import { HttpError, validate, sendSuccess, wrapAsync } from "../utils/helper";
+import { UserRole } from "../types/user";
+import { Types } from "mongoose";
 
 const titleSchema = Joi.string().trim().min(1).messages({
   "string.base": "'title' must be a string.",
@@ -38,71 +30,113 @@ const updateSchema = Joi.object({
     "object.min": "Body must include at least 'title' or 'completed'.",
   });
 
-const validate = <T>(schema: Joi.ObjectSchema<T>, payload: unknown): T => {
-  const { error, value } = schema.validate(payload, {
-    abortEarly: false,
-    allowUnknown: false,
-    stripUnknown: true,
-  });
-  if (error)
-    throw new HttpError(400, error.details.map((d) => d.message).join("; "));
-  return value;
-};
-
-const sendSuccess = <T>(
-  res: Response,
-  statusCode: number,
-  data: T,
-  message: string,
-): void => {
-  res.status(statusCode).json({ success: true, message, data });
-};
-
-const wrapAsync = (
-  fn: (req: Request, res: Response) => Promise<void>,
-): RequestHandler => {
-  return async (req, res, next: NextFunction) => {
-    try {
-      await fn(req, res);
-    } catch (err) {
-      next(err);
-    }
-  };
-};
-
 export const taskController = {
-  getAllTasks: wrapAsync(async (_req, res) => {
-    const tasks = await TaskModel.find().sort({ createdAt: -1 });
+  getAllTasks: wrapAsync(async (req, res) => {
+    if (!req.user) {
+      throw new HttpError(401, "Authentication required");
+    }
+
+    let tasks;
+    if (req.user.role === UserRole.ADMIN) {
+      tasks = await TaskModel.find().sort({ createdAt: -1 });
+    } else {
+      tasks = await TaskModel.find({ userId: req.user.id }).sort({
+        createdAt: -1,
+      });
+    }
     sendSuccess(res, 200, tasks, "Tasks retrieved successfully.");
   }),
 
   getTaskById: wrapAsync(async (req, res) => {
+    if (!req.user) {
+      throw new HttpError(401, "Authentication required");
+    }
+
     const { id } = req.params;
     const task = await TaskModel.findById(id);
     if (!task) throw new HttpError(404, `Task with ID ${id} not found.`);
+
+    // Check ownership: users can only access their own tasks, admins can access all
+    if (
+      req.user.role !== UserRole.ADMIN &&
+      task.userId.toString() !== req.user.id
+    ) {
+      throw new HttpError(
+        403,
+        "Access denied: You can only access your own tasks.",
+      );
+    }
+
     sendSuccess(res, 200, task, "Task retrieved successfully.");
   }),
 
   createTask: wrapAsync(async (req, res) => {
+    if (!req.user) {
+      throw new HttpError(401, "Authentication required");
+    }
+
     const input = validate(createSchema, req.body);
-    const task = await TaskModel.create(input);
+    const task = await TaskModel.create({
+      ...input,
+      userId: new Types.ObjectId(req.user.id),
+    });
     sendSuccess(res, 201, task, "Task created successfully.");
   }),
 
   updateTask: wrapAsync(async (req, res) => {
+    if (!req.user) {
+      throw new HttpError(401, "Authentication required");
+    }
+
     const { id } = req.params;
     const input = validate(updateSchema, req.body);
+
+    // First check if task exists and verify ownership
+    const existingTask = await TaskModel.findById(id);
+    if (!existingTask)
+      throw new HttpError(404, `Task with ID ${id} not found.`);
+
+    // Check ownership: users can only update their own tasks, admins can update all
+    if (
+      req.user.role !== UserRole.ADMIN &&
+      existingTask.userId.toString() !== req.user.id
+    ) {
+      throw new HttpError(
+        403,
+        "Access denied: You can only update your own tasks.",
+      );
+    }
+
     const task = await TaskModel.findByIdAndUpdate(id, input, {
       returnDocument: "after",
     });
-    if (!task) throw new HttpError(404, `Task with ID ${id} not found.`);
     sendSuccess(res, 200, task, "Task updated successfully.");
   }),
 
   deleteTask: wrapAsync(async (req, res) => {
+    if (!req.user) {
+      throw new HttpError(401, "Authentication required");
+    }
+
     const { id } = req.params;
+
+    // First check if task exists and verify ownership
+    const existingTask = await TaskModel.findById(id);
+    if (!existingTask)
+      throw new HttpError(404, `Task with ID ${id} not found.`);
+
+    // Check ownership: users can only delete their own tasks, admins can delete all
+    if (
+      req.user.role !== UserRole.ADMIN &&
+      existingTask.userId.toString() !== req.user.id
+    ) {
+      throw new HttpError(
+        403,
+        "Access denied: You can only delete your own tasks.",
+      );
+    }
+
     const task = await TaskModel.findByIdAndDelete(id);
-    if (!task) throw new HttpError(404, `Task with ID ${id} not found.`);
     sendSuccess(res, 200, task, "Task deleted successfully.");
   }),
 };
