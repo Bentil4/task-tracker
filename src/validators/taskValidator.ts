@@ -11,6 +11,7 @@ export const createSchema = Joi.object({
     .required()
     .messages({ "any.required": "'title' is required." }),
   completed: Joi.boolean()
+    .required()
     .default(false)
     .messages({ "boolean.base": "'completed' must be a boolean." }),
 });

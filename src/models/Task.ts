@@ -14,6 +14,7 @@ const taskSchema = new Schema<ITaskDocument>(
     completed: {
       type: Boolean,
       default: false,
+      required: [true, "Completion status is required"],
     },
     createdAt: {
       type: Date,

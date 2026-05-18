@@ -7,7 +7,7 @@ export interface ITask {
 
 export interface ICreateTaskInput {
   title: string;
-  completed?: boolean;
+  completed: boolean;
 }
 
 export interface IUpdateTaskInput {
