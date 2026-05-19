@@ -43,12 +43,12 @@ export const userController = {
     const sanitizedInput = sanitizeUserInput(req.body);
     const { email } = sanitizedInput;
 
-    // First check if user exists and verify ownership
+    
     const existingUser = await UserModel.findById(id);
     if (!existingUser)
       throw new HttpError(404, `User with ID ${id} not found.`);
 
-    // Check ownership: users can only update their own profile, admins can update all
+
     if (
       req.user.role !== UserRole.ADMIN &&
       existingUser._id.toString() !== req.user.id

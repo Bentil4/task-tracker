@@ -73,9 +73,7 @@ userSchema.methods.generateAuthToken = function (this: IUserDocument) {
   const token = jwt.sign(
     { id: this._id.toString(), email: this.email, role: this.role },
     process.env.JWT_SECRET as string,
-    {
-      expiresIn: "1h",
-    },
+    { expiresIn: process.env.JWT_EXPIRES_IN ?? "1h" } as jwt.SignOptions,
   );
   return token;
 };

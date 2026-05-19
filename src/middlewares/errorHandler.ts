@@ -11,10 +11,8 @@ export const errorHandler = (
   const isDevelopment = process.env.NODE_ENV === "development";
 
   res.status(statusCode).json({
-    success: false,
-    error: {
-      message: error.message || "An unexpected error occurred.",
-      ...(isDevelopment ? { stack: error.stack } : {}),
-    },
+    status: "error",
+    message: error.message || "An unexpected error occurred.",
+    ...(isDevelopment ? { stack: error.stack } : {}),
   });
 };

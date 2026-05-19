@@ -5,7 +5,6 @@ import { notFound } from "./middlewares/notFound";
 import taskRouter from "./routes/taskRoutes";
 import userRouter from "./routes/userRoute";
 import authRouter from "./routes/authRoutes";
-import { authenticateToken } from "./middlewares/authentication";
 
 const app = express();
 
