@@ -1,50 +1,28 @@
-import Joi from "joi";
-import { TaskModel } from "../models/Task.model";
-import { HttpError, validate, sendSuccess, wrapAsync } from "../utils/helper";
-import { UserRole } from "../types/user";
-import { Types } from "mongoose";
-
-const titleSchema = Joi.string().trim().min(1).messages({
-  "string.base": "'title' must be a string.",
-  "string.empty": "'title' must be a non-empty string.",
-  "string.min": "'title' must be a non-empty string.",
-});
-
-const createSchema = Joi.object({
-  title: titleSchema
-    .required()
-    .messages({ "any.required": "'title' is required." }),
-  completed: Joi.boolean()
-    .default(false)
-    .messages({ "boolean.base": "'completed' must be a boolean." }),
-});
-
-const updateSchema = Joi.object({
-  title: titleSchema,
-  completed: Joi.boolean().messages({
-    "boolean.base": "'completed' must be a boolean.",
-  }),
-})
-  .min(1)
-  .messages({
-    "object.min": "Body must include at least 'title' or 'completed'.",
-  });
+import { TaskModel } from "../models/Task";
+import { HttpError } from "../utils/errors";
+import { validate, sendSuccess, wrapAsync } from "../utils/helpers";
+import { createSchema, updateSchema, querySchema } from "../validators/taskValidator";
 
 export const taskController = {
   getAllTasks: wrapAsync(async (req, res) => {
-    if (!req.user) {
-      throw new HttpError(401, "Authentication required");
-    }
+    const query = validate(querySchema, req.query);
 
-    let tasks;
-    if (req.user.role === UserRole.ADMIN) {
-      tasks = await TaskModel.find().sort({ createdAt: -1 });
-    } else {
-      tasks = await TaskModel.find({ userId: req.user.id }).sort({
-        createdAt: -1,
-      });
-    }
-    sendSuccess(res, 200, tasks, "Tasks retrieved successfully.");
+    const filter: Record<string, unknown> = {};
+    if (query.completed !== undefined) filter.completed = query.completed;
+    if (query.search) filter.title = { $regex: query.search, $options: "i" };
+
+    const sortBy = query.sortBy ?? "createdAt";
+    const sortOrder = query.order === "asc" ? 1 : -1;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const [tasks, total] = await Promise.all([
+      TaskModel.find(filter).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit).lean(),
+      TaskModel.countDocuments(filter).lean(),
+    ]);
+
+    sendSuccess(res, 200, { tasks, total, page, limit }, "Tasks retrieved successfully.");
   }),
 
   getTaskById: wrapAsync(async (req, res) => {
@@ -53,7 +31,7 @@ export const taskController = {
     }
 
     const { id } = req.params;
-    const task = await TaskModel.findById(id);
+    const task = await TaskModel.findById(id).lean();
     if (!task) throw new HttpError(404, `Task with ID ${id} not found.`);
 
     // Check ownership: users can only access their own tasks, admins can access all

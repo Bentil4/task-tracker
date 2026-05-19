@@ -4,16 +4,23 @@ export interface ITask {
   id: string;
   title: string;
   completed: boolean;
-  userId: Types.ObjectId;
-  createdAt: Date;
 }
 
 export interface ICreateTaskInput {
   title: string;
-  completed?: boolean;
+  completed: boolean;
 }
 
 export interface IUpdateTaskInput {
   title?: string;
   completed?: boolean;
+}
+
+export interface ITaskQueryParams {
+  completed?: boolean;
+  search?: string;
+  sortBy?: "createdAt" | "updatedAt" | "title";
+  order?: "asc" | "desc";
+  page?: number;
+  limit?: number;
 }

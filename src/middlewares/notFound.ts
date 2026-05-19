@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { HttpError } from "../utils/helper";
+import { HttpError } from "../utils/errors";
 
 export const notFound = (
   req: Request,
