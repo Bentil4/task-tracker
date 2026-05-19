@@ -2,7 +2,6 @@ export interface ITask {
   id: string;
   title: string;
   completed: boolean;
-  createdAt: Date;
 }
 
 export interface ICreateTaskInput {
@@ -13,4 +12,13 @@ export interface ICreateTaskInput {
 export interface IUpdateTaskInput {
   title?: string;
   completed?: boolean;
+}
+
+export interface ITaskQueryParams {
+  completed?: boolean;
+  search?: string;
+  sortBy?: "createdAt" | "updatedAt" | "title";
+  order?: "asc" | "desc";
+  page?: number;
+  limit?: number;
 }

@@ -16,10 +16,6 @@ const taskSchema = new Schema<ITaskDocument>(
       default: false,
       required: [true, "Completion status is required"],
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
   {
     timestamps: true,
