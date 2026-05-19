@@ -4,6 +4,7 @@ export interface ITask {
   id: string;
   title: string;
   completed: boolean;
+  userId: Types.ObjectId;
 }
 
 export interface ICreateTaskInput {

@@ -1,15 +1,8 @@
 import Joi from "joi";
 import { NextFunction, Request, RequestHandler, Response } from "express";
+import { HttpError } from "./errors";
 
-export class HttpError extends Error {
-  constructor(
-    public readonly statusCode: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = "HttpError";
-  }
-}
+export { HttpError };
 
 export const validate = <T>(
   schema: Joi.ObjectSchema<T>,
