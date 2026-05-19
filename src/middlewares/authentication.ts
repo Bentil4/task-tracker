@@ -2,11 +2,9 @@ import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { IUser, UserRole } from "../types/user";
 
-interface AuthPayload {
+interface AuthPayload extends Pick<IUser, "email" | "role"> {
   id?: string;
   _id?: string;
-  email: string;
-  role: UserRole;
 }
 
 declare global {
