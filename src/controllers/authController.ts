@@ -1,7 +1,7 @@
 import { UserModel } from "../models/User.model";
-import { wrapAsync, HttpError, validate, sendSuccess } from "../utils/helper";
+import { wrapAsync, sendSuccess } from "../utils/helper";
+import {HttpError} from '../utils/errors'
 import { sanitizeUserInput } from "../utils/sanitizeInput";
-import { userSchema } from "./userController";
 
 export const authController = {
   registerUser: wrapAsync(async (req, res) => {
@@ -12,6 +12,9 @@ export const authController = {
     if (existingUser) {
       throw new HttpError(409, "User already exists");
     }
+
+    const user = new UserModel(sanitizedInput);
+    await user.save();
     sendSuccess(res, 201, true, "User created successfully");
   }),
 
@@ -27,6 +30,7 @@ export const authController = {
     const token = user.generateAuthToken();
 
     res.header("Authorization", `Bearer ${token}`);
-    sendSuccess(res, 200, true, "User logged in successfully");
+    const Authorization = `Bearer ${token}`;
+    sendSuccess(res, 200, Authorization, "User logged in successfully");
   }),
 };
