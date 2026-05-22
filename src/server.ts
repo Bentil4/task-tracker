@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
-dotenv.config();
 import { connectDB } from "./config/db";
 import { validateEnvVars } from "./config/env";
 import app from "./app";
 
 const port = Number(process.env.PORT) || 3000;
+dotenv.config();
 
 validateEnvVars();
 connectDB().then(() => {
