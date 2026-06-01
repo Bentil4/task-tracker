@@ -1,7 +1,8 @@
 import { UserModel } from "../models/User.model";
 import { wrapAsync, sendSuccess } from "../utils/helper";
-import {HttpError} from '../utils/errors'
+import { HttpError } from "../utils/errors";
 import { sanitizeUserInput } from "../utils/sanitizeInput";
+import { generateAuthToken } from "../utils/token";
 
 export const authController = {
   registerUser: wrapAsync(async (req, res) => {
@@ -24,10 +25,10 @@ export const authController = {
     const user = await UserModel.findOne({ email: email.toLowerCase() }).select(
       "+password",
     );
-    if (!user) throw new HttpError(404, "User not found");
+    if (!user) throw new HttpError(404, "Invalid credentials");
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) throw new HttpError(401, "Invalid password");
-    const token = user.generateAuthToken();
+    const token = generateAuthToken(user);
 
     res.header("Authorization", `Bearer ${token}`);
     const Authorization = `Bearer ${token}`;

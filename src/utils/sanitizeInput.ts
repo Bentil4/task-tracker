@@ -1,5 +1,9 @@
 import DOMPurify from "isomorphic-dompurify";
 
+export const escapeRegExp = (str: string): string => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
 export const sanitizeString = (input: string): string => {
   return DOMPurify.sanitize(input.trim());
 };

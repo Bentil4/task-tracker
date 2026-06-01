@@ -8,6 +8,7 @@ import {
   querySchema,
 } from "../validators/taskValidator";
 import { UserRole } from "../types/user";
+import { escapeRegExp } from "../utils/sanitizeInput";
 
 export const taskController = {
   getAllTasks: wrapAsync(async (req, res) => {
@@ -20,7 +21,7 @@ export const taskController = {
     const filter: Record<string, unknown> = {};
     if (req.user.role !== UserRole.ADMIN) filter.userId = req.user.id;
     if (query.completed !== undefined) filter.completed = query.completed;
-    if (query.search) filter.title = { $regex: query.search, $options: "i" };
+    if (query.search) filter.title = { $regex: escapeRegExp(query.search), $options: "i" };
 
     const sortBy = query.sortBy ?? "createdAt";
     const sortOrder = query.order === "asc" ? 1 : -1;
