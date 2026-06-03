@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 import { ITask } from "../types/task";
 
 export interface ITaskDocument extends ITask, Document {}
@@ -14,10 +14,12 @@ const taskSchema = new Schema<ITaskDocument>(
     completed: {
       type: Boolean,
       default: false,
+      required: [true, "Completion status is required"],
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "User ID is required"],
     },
   },
   {

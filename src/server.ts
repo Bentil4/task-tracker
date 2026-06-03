@@ -1,10 +1,11 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "./config/env";
 import { connectDB } from "./config/db";
+import { validateEnvVars } from "./config/env";
 import app from "./app";
 
 const port = Number(process.env.PORT) || 3000;
 
+validateEnvVars();
 connectDB().then(() => {
   const server = app.listen(port, () => {
     console.log("\nTask Tracker API");
