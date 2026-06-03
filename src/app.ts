@@ -8,8 +8,8 @@ import authRouter from "./routes/authRoutes";
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: false, limit: "10kb" }));
 app.use(logger);
 
 app.get("/", (_req, res) => {
@@ -18,7 +18,7 @@ app.get("/", (_req, res) => {
 
 app.use("/api/tasks", taskRouter);
 app.use("/api/users", userRouter);
-app.use("/auth", authRouter);
+app.use("/api/auth", authRouter);
 
 app.use(notFound);
 app.use(errorHandler);

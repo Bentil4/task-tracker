@@ -8,21 +8,21 @@ export const sanitizeString = (input: string): string => {
   return DOMPurify.sanitize(input.trim());
 };
 
-export const sanitizeUserInput = (data: any): any => {
+export const sanitizeUserInput = <T>(data: T): T => {
   if (typeof data === "string") {
-    return sanitizeString(data);
+    return sanitizeString(data) as T;
   }
 
   if (Array.isArray(data)) {
-    return data.map((item) => sanitizeUserInput(item));
+    return data.map((item) => sanitizeUserInput(item)) as T;
   }
 
-  if (data && typeof data === "object") {
-    const sanitized: any = {};
-    for (const [key, value] of Object.entries(data)) {
+  if (data !== null && typeof data === "object") {
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
       sanitized[key] = sanitizeUserInput(value);
     }
-    return sanitized;
+    return sanitized as T;
   }
 
   return data;
