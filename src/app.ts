@@ -5,12 +5,11 @@ import { notFound } from "./middlewares/notFound";
 import taskRouter from "./routes/taskRoutes";
 import userRouter from "./routes/userRoute";
 import authRouter from "./routes/authRoutes";
-import { authenticateToken } from "./middlewares/authentication";
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: false, limit: "10kb" }));
 app.use(logger);
 
 app.get("/", (_req, res) => {
@@ -19,7 +18,7 @@ app.get("/", (_req, res) => {
 
 app.use("/api/tasks", taskRouter);
 app.use("/api/users", userRouter);
-app.use("/auth", authRouter);
+app.use("/api/auth", authRouter);
 
 app.use(notFound);
 app.use(errorHandler);

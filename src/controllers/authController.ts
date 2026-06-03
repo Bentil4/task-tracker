@@ -1,17 +1,27 @@
 import { UserModel } from "../models/User.model";
-import { wrapAsync, HttpError, validate, sendSuccess } from "../utils/helper";
+import { wrapAsync, sendSuccess, validate } from "../utils/helper";
+import { HttpError } from "../utils/errors";
 import { sanitizeUserInput } from "../utils/sanitizeInput";
-import { userSchema } from "./userController";
+import { generateAuthToken } from "../utils/token";
+import { userSchema } from "../validators/userValidator";
 
 export const authController = {
   registerUser: wrapAsync(async (req, res) => {
-    const sanitizedInput = sanitizeUserInput(req.body);
+    const validated = validate(userSchema, req.body);
+    const sanitizedInput = sanitizeUserInput(validated);
     const existingUser = await UserModel.findOne({
-      email: sanitizedInput.email.toLowerCase(),
+      email: validated.email.toLowerCase(),
     });
+
     if (existingUser) {
-      throw new HttpError(409, "User already exists");
+      throw new HttpError(
+        400,
+        "Registration failed. Please check your details.",
+      );
     }
+
+    const user = new UserModel(sanitizedInput);
+    await user.save();
     sendSuccess(res, 201, true, "User created successfully");
   }),
 
@@ -21,12 +31,12 @@ export const authController = {
     const user = await UserModel.findOne({ email: email.toLowerCase() }).select(
       "+password",
     );
-    if (!user) throw new HttpError(404, "User not found");
+    if (!user) throw new HttpError(401, "Invalid credentials");
     const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) throw new HttpError(401, "Invalid password");
-    const token = user.generateAuthToken();
+    if (!isPasswordValid) throw new HttpError(401, "Invalid credentials");
+    const token = generateAuthToken(user);
 
     res.header("Authorization", `Bearer ${token}`);
-    sendSuccess(res, 200, true, "User logged in successfully");
+    sendSuccess(res, 200, { token }, "User logged in successfully");
   }),
 };

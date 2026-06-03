@@ -18,3 +18,8 @@ export interface ICreateUserInput {
   password: string;
   role: UserRole;
 }
+
+export interface IUserQueryParams {
+  page: number;
+  limit: number;
+}

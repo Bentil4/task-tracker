@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { HttpError } from "../utils/helper";
+import { HttpError } from "../utils/errors";
 
 export const errorHandler = (
   error: Error,
@@ -11,10 +11,8 @@ export const errorHandler = (
   const isDevelopment = process.env.NODE_ENV === "development";
 
   res.status(statusCode).json({
-    success: false,
-    error: {
-      message: error.message || "An unexpected error occurred.",
-      ...(isDevelopment ? { stack: error.stack } : {}),
-    },
+    status: "error",
+    message: error.message || "An unexpected error occurred.",
+    ...(isDevelopment ? { stack: error.stack } : {}),
   });
 };

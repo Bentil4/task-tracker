@@ -42,3 +42,4 @@ Thumbs.db
 
 # Package manager lock files (preserve existing)
 package-lock.json
+ARCHITECTURE.md
