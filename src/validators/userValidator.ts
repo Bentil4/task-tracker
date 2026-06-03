@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { UserRole } from "../types/user";
+import { IUserQueryParams, UserRole } from "../types/user";
 
 const fullNameSchema = Joi.string().trim().min(5).max(100).required().messages({
   "string.min": "'fullName' must be at least 5 characters.",
@@ -43,4 +43,20 @@ export const userSchema = Joi.object({
   email: emailSchema,
   password: passwordSchema,
   role: roleSchema,
+});
+
+export const updateEmailSchema = Joi.object({
+  email: emailSchema,
+});
+
+export const querySchema = Joi.object<IUserQueryParams>({
+  page: Joi.number().integer().min(1).default(1).messages({
+    "number.base": "'page' must be a number.",
+    "number.min": "'page' must be at least 1.",
+  }),
+  limit: Joi.number().integer().min(1).max(100).default(10).messages({
+    "number.base": "'limit' must be a number.",
+    "number.min": "'limit' must be at least 1.",
+    "number.max": "'limit' cannot exceed 100.",
+  }),
 });
