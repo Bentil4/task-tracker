@@ -12,6 +12,9 @@ export const sanitizeUserInput = <T>(data: T): T => {
   if (typeof data === "string") {
     return sanitizeString(data) as T;
   }
+  if (typeof data === null || typeof data === "undefined") {
+    return data as T;
+  }
 
   if (Array.isArray(data)) {
     return data.map((item) => sanitizeUserInput(item)) as T;
